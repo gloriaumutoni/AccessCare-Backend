@@ -1,4 +1,3 @@
-import { Options } from '@nestjs/common';
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity('users')
