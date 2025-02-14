@@ -9,6 +9,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dtos/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { Response } from 'express';
 
 @Controller('users')
 export class UsersController {
@@ -38,7 +39,8 @@ export class UsersController {
           throw new BadRequestException('Invalid credentials');
         }
       const jwt = await this.jwtService.signAsync({ id: users.id });
-      return jwt;
+      response.cookie('jwt', jwt, { httpOnly: true });
+      return { message: 'success' };
     }
   }
 }
