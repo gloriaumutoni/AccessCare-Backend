@@ -24,7 +24,14 @@ export class UsersController {
   @Post('/signup')
   async createUser(@Body() body: CreateUserDto) {
     const hashedPassword = await bcrypt.hash(body.password, 10);
-    return this.usersService.create(body.name, body.email, hashedPassword);
+    const user = await this.usersService.create(
+      body.name,
+      body.email,
+      hashedPassword,
+    );
+
+    const { password, ...result } = user;
+    return result;
   }
 
   @Post('/login')
@@ -56,7 +63,11 @@ export class UsersController {
         throw new UnauthorizedException();
       }
       const user = await this.usersService.findById(data['id']);
-      return user;
+      if (!user) {
+        throw new UnauthorizedException();
+      }
+      const { password, ...result } = user;
+      return result;
     } catch (error) {
       throw new UnauthorizedException();
     }
