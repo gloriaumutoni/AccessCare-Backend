@@ -2,14 +2,16 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   Post,
+  Req,
   Res,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dtos/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 
 @Controller('users')
 export class UsersController {
@@ -42,5 +44,11 @@ export class UsersController {
       response.cookie('jwt', jwt, { httpOnly: true });
       return { message: 'success' };
     }
+  }
+
+  @Get()
+  async getUsers(@Req() request: Request) {
+    const cookie = request.cookies['jwt'];
+    return cookie;
   }
 }
