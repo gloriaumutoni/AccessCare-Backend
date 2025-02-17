@@ -6,6 +6,7 @@ import {
   Post,
   Req,
   Res,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dtos/create-user.dto';
@@ -47,8 +48,17 @@ export class UsersController {
   }
 
   @Get()
-  async getUsers(@Req() request: Request) {
-    const cookie = request.cookies['jwt'];
-    return cookie;
+  async getUser(@Req() request: Request) {
+    try {
+      const cookie = request.cookies['jwt'];
+      const data = await this.jwtService.verifyAsync(cookie); // transform jwt token to its original data
+      if (!data) {
+        throw new UnauthorizedException();
+      }
+      const user = await this.usersService.findById(data['id']);
+      return user;
+    } catch (error) {
+      throw new UnauthorizedException();
+    }
   }
 }
