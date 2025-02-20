@@ -13,6 +13,8 @@ import { CreateUserDto } from './dtos/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { Request, Response } from 'express';
+// import { Role } from '../enums/role.enum';
+// import { Roles } from './decorators/role.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -72,7 +74,7 @@ export class UsersController {
       throw new UnauthorizedException();
     }
   }
-
+  // @Roles(Role.ADMIN)
   @Post('/logout')
   async logout(@Res({ passthrough: true }) response: Response) {
     response.clearCookie('jwt');
