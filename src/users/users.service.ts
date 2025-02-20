@@ -22,4 +22,8 @@ export class UsersService {
   findById(id: number) {
     return this.userRepository.findOneBy({ id });
   }
+
+  findAll() {
+    return this.userRepository.find();
+  }
 }

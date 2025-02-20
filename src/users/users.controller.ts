@@ -56,6 +56,21 @@ export class UsersController {
     }
   }
 
+  @Get('/users')
+  async getUsers(@Req() request: Request) {
+    try {
+      const cookie = request.cookies['jwt'];
+      const data = await this.jwtService.verifyAsync(cookie); // transform jwt token to its original data
+      if (!data) {
+        throw new UnauthorizedException();
+      }
+      const user = await this.usersService.findAll();
+      return user;
+    } catch (error) {
+      throw new UnauthorizedException();
+    }
+  }
+
   @Get()
   async getUser(@Req() request: Request) {
     try {
@@ -74,6 +89,7 @@ export class UsersController {
       throw new UnauthorizedException();
     }
   }
+
   // @Roles(Role.ADMIN)
   @Post('/logout')
   async logout(@Res({ passthrough: true }) response: Response) {
