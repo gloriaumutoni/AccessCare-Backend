@@ -38,22 +38,19 @@ export class UsersController {
 
   @Post('/login')
   async login(
-    @Body() body: Partial<CreateUserDto>,
+    @Body() body: Exclude<CreateUserDto, 'username'>,
     @Res({ passthrough: true }) response: Response,
   ) {
-    if (body.email) {
-      const users = await this.usersService.findOne(body.email);
-      if (!users) {
-        throw new BadRequestException('Invalid credentials');
-      }
-      if (body.password)
-        if (!(await bcrypt.compare(body.password, users.password))) {
-          throw new BadRequestException('Invalid credentials');
-        }
-      const jwt = await this.jwtService.signAsync({ id: users.id });
-      response.cookie('jwt', jwt, { httpOnly: true });
-      return { message: 'success' };
+    const users = await this.usersService.findOne(body.email);
+    if (!users) {
+      throw new BadRequestException('Invalid credentials');
     }
+    if (!(await bcrypt.compare(body.password, users.password))) {
+      throw new BadRequestException('Invalid credentials');
+    }
+    const jwt = await this.jwtService.signAsync({ id: users.id });
+    response.cookie('jwt', jwt, { httpOnly: true });
+    return { message: 'success' };
   }
 
   @Get('/users')
