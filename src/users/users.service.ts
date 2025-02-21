@@ -11,8 +11,8 @@ export class UsersService {
     @InjectRepository(User) private userRepository: Repository<User>,
   ) {}
 
-  create(name: string, email: string, password: string) {
-    return this.userRepository.save({ name, email, password });
+  create(username: string, email: string, password: string) {
+    return this.userRepository.save({ username, email, password });
   }
 
   findOne(email: string) {
