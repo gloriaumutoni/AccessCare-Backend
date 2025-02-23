@@ -37,7 +37,6 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     const admin = await this.adminService.findOne(body.email);
-    console.log(body);
     if (!admin) {
       throw new BadRequestException('Invalid credentials');
     }
