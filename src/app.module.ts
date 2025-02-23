@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './users/user.entity';
-import { UsersModule } from './users/users.module';
-import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
+import { Admin } from './admin/admin.entity';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -18,12 +17,12 @@ import { AuthModule } from './auth/auth.module';
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_DATABASE'),
-        entities: [User],
+        entities: [Admin],
         synchronize: true,
       }),
       inject: [ConfigService],
     }),
-    UsersModule,
+    AdminModule,
     AuthModule,
   ],
   controllers: [],
