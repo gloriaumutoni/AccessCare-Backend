@@ -11,15 +11,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Appointment } from './entities/appointment.entity';
 import { Repository } from 'typeorm';
 import * as dayjs from 'dayjs';
-import { AdminService } from '../admin/admin.service';
-import { Admin } from '../admin/admin.entity';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class AppointmentsService {
   constructor(
     @InjectRepository(Appointment)
     private readonly appointmentRepository: Repository<Appointment>,
-    private readonly adminService: AdminService,
+    private readonly userService: UserService,
   ) {}
   async create(
     createAppointmentDto: CreateAppointmentDto,
@@ -39,11 +38,11 @@ export class AppointmentsService {
           'You cannot create an appointment with yourself',
         );
       }
-      const provider = await this.adminService.findById(id);
+      const provider = await this.userService.findById(id);
       if (!provider) {
         throw new NotFoundException('Provider not found');
       }
-      const owner = await this.adminService.findById(user);
+      const owner = await this.userService.findById(user);
       if (!owner) {
         throw new NotFoundException('Owner not found');
       }

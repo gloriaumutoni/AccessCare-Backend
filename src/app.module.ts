@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
-import { AdminModule } from './admin/admin.module';
+import { UserModule } from './user/user.module';
 import { AppointmentModule } from './appointment/appointment.module';
 
 @Module({
@@ -22,7 +22,7 @@ import { AppointmentModule } from './appointment/appointment.module';
       }),
       inject: [ConfigService],
     }),
-    AdminModule,
+    UserModule,
     AuthModule,
     AppointmentModule,
   ],

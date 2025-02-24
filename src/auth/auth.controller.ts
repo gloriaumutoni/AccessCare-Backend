@@ -7,48 +7,51 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { Request, Response } from 'express';
-import { AdminService } from '../admin/admin.service';
-import { CreateAdminDto } from '../admin/dtos/create-admin.dto';
+import { Response } from 'express';
+import { CreateUserDto } from '../user/dtos/create-user.dto';
+import { UserService } from '../user/user.service';
+import { Role } from '../common/enums/role.enum';
 
 @Controller('auth')
 export class AuthController {
   constructor(
-    private readonly adminService: AdminService,
+    private readonly userService: UserService,
     private jwtService: JwtService,
   ) {}
 
   @Post('/signup')
-  async createadmin(@Body() body: CreateAdminDto) {
+  async createuser(@Body() body: CreateUserDto) {
     const hashedPassword = await bcrypt.hash(body.password, 10);
-    const admin = await this.adminService.create(
-      body.username,
-      body.email,
-      hashedPassword,
-    );
+    const user = await this.userService.create({
+      username: body.username,
+      email: body.email,
+      role: Role.PATIENT,
+      password: hashedPassword,
+      appointmentsAsProvider: [],
+      appointmentsAsOwner: [],
+    });
 
-    const { password, ...result } = admin;
+    const { password, ...result } = user;
     return result;
   }
 
   @Post('/login')
   async login(
-    @Body() body: Exclude<CreateAdminDto, 'username'>,
+    @Body() body: Exclude<CreateUserDto, 'username'>,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const admin = await this.adminService.findOne(body.email);
-    if (!admin) {
+    const user = await this.userService.findOne(body.email);
+    if (!user) {
       throw new BadRequestException('Invalid credentials');
     }
-    if (!(await bcrypt.compare(body.password, admin.password))) {
+    if (!(await bcrypt.compare(body.password, user.password))) {
       throw new BadRequestException('Invalid credentials');
     }
-    const jwt = await this.jwtService.signAsync({ id: admin.id });
+    const jwt = await this.jwtService.signAsync({ id: user.id });
     response.cookie('jwt', jwt, { httpOnly: true });
-    return { access_token: jwt };
+    return { access_token: jwt, user };
   }
 
-  // @Roles(Role.ADMIN)
   @Post('/logout')
   async logout(@Res({ passthrough: true }) response: Response) {
     response.clearCookie('jwt');

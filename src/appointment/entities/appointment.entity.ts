@@ -5,20 +5,20 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Admin } from '../../admin/admin.entity';
+import { User } from '../../user/user.entity';
 
 @Entity('appointment')
 export class Appointment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Admin, { eager: true })
+  @ManyToOne(() => User, { eager: true })
   @JoinColumn()
-  owner: Admin;
+  owner: User;
 
-  @ManyToOne(() => Admin, { eager: true })
+  @ManyToOne(() => User, { eager: true })
   @JoinColumn()
-  provider: Admin;
+  provider: User;
 
   @Column({ type: 'varchar', length: 255 })
   start_date: string;

@@ -11,26 +11,26 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { AdminService } from './admin.service';
-import { UpdateAdminDto } from './dtos/update-admin.dto';
+import { UserService } from './user.service';
 import * as bcrypt from 'bcrypt';
+import { UpdateUserDto } from './dtos/update-user.dto';
 
-@Controller('admin')
-export class AdminController {
+@Controller('user')
+export class UserController {
   constructor(
-    private readonly adminService: AdminService,
+    private readonly userService: UserService,
     private jwtService: JwtService,
   ) {}
 
   @Get()
-  async getAdmins(@Req() request: Request) {
+  async getUsers(@Req() request: Request) {
     try {
       const cookie = request.cookies['jwt'];
-      const data = await this.jwtService.verifyAsync(cookie); // transform jwt token to its original data
+      const data = await this.jwtService.verifyAsync(cookie);
       if (!data) {
         throw new UnauthorizedException();
       }
-      const admin = await this.adminService.findAll();
+      const admin = await this.userService.findAll();
       return admin;
     } catch (error) {
       throw new UnauthorizedException();
@@ -38,8 +38,8 @@ export class AdminController {
   }
 
   @Put(':id')
-  async updateAdmin(@Param('id') id: string, @Body() body: UpdateAdminDto) {
-    const admin = await this.adminService.findById(+id);
+  async updateUser(@Param('id') id: string, @Body() body: UpdateUserDto) {
+    const admin = await this.userService.findById(+id);
     let hashedPassword;
     if (!admin) {
       throw new NotFoundException('Admin not found');
@@ -48,12 +48,12 @@ export class AdminController {
       hashedPassword = await bcrypt.hash(body.password, 10);
     }
 
-    this.adminService.update(+id, { ...body, password: hashedPassword });
+    this.userService.update(+id, { ...body, password: hashedPassword });
     return { message: 'success' };
   }
 
   @Delete(':id')
-  deleteAdmin(@Param('id') id: string) {
-    return this.adminService.remove(+id);
+  deleteUser(@Param('id') id: string) {
+    return this.userService.remove(+id);
   }
 }

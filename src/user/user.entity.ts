@@ -2,8 +2,8 @@ import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { Appointment } from '../appointment/entities/appointment.entity';
 import { Role } from '../common/enums/role.enum';
 
-@Entity('admin')
-export class Admin {
+@Entity('user')
+export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
