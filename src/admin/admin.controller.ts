@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   NotFoundException,
   Param,
@@ -22,7 +23,7 @@ export class AdminController {
   ) {}
 
   @Get()
-  async getadmins(@Req() request: Request) {
+  async getAdmins(@Req() request: Request) {
     try {
       const cookie = request.cookies['jwt'];
       const data = await this.jwtService.verifyAsync(cookie); // transform jwt token to its original data
@@ -37,7 +38,7 @@ export class AdminController {
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() body: UpdateAdminDto) {
+  async updateAdmin(@Param('id') id: string, @Body() body: UpdateAdminDto) {
     const admin = await this.adminService.findById(+id);
     let hashedPassword;
     if (!admin) {
@@ -49,5 +50,10 @@ export class AdminController {
 
     this.adminService.update(+id, { ...body, password: hashedPassword });
     return { message: 'success' };
+  }
+
+  @Delete(':id')
+  deleteAdmin(@Param('id') id: string) {
+    return this.adminService.remove(+id);
   }
 }
