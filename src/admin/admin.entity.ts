@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-// import { Role } from '../common/enums/role.enum';
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Appointment } from '../appointment/entities/appointment.entity';
+import { Role } from '../common/enums/role.enum';
 
 @Entity('admin')
 export class Admin {
@@ -9,16 +10,18 @@ export class Admin {
   @Column()
   username: string;
 
-  // @Column({
-  //   type: 'enum',
-  //   enum: Role,
-  //   default: Role.PATIENT,
-  // })
-  // role: Role;
-
   @Column({ unique: true })
   email: string;
 
   @Column()
   password: string;
+
+  @Column()
+  role: Role;
+
+  @OneToMany(() => Appointment, (appointment) => appointment.provider)
+  appointmentsAsProvider: Appointment[];
+
+  @OneToMany(() => Appointment, (appointment) => appointment.owner)
+  appointmentsAsOwner: Appointment[];
 }

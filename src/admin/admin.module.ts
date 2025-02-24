@@ -4,6 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
 import { Admin } from './admin.entity';
+import { Repository } from 'typeorm';
 
 @Module({
   imports: [
