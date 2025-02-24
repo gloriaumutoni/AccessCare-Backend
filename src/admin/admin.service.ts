@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Admin } from './admin.entity';
+import { UpdateAdminDto } from './dtos/update-admin.dto';
 
 @Injectable()
 export class AdminService {
@@ -23,5 +24,13 @@ export class AdminService {
 
   findAll() {
     return this.adminRepository.find();
+  }
+
+  update(id: number, updateAdminDto: UpdateAdminDto) {
+    return this.adminRepository.update(id, updateAdminDto);
+  }
+
+  remove(id: number) {
+    return this.adminRepository.delete(id);
   }
 }

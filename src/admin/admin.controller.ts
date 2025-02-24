@@ -1,13 +1,18 @@
 import {
+  Body,
   Controller,
   Get,
+  NotFoundException,
   Param,
+  Put,
   Req,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { AdminService } from './admin.service';
+import { UpdateAdminDto } from './dtos/update-admin.dto';
+import * as bcrypt from 'bcrypt';
 
 @Controller('admin')
 export class AdminController {
@@ -29,5 +34,20 @@ export class AdminController {
     } catch (error) {
       throw new UnauthorizedException();
     }
+  }
+
+  @Put(':id')
+  async update(@Param('id') id: string, @Body() body: UpdateAdminDto) {
+    const admin = await this.adminService.findById(+id);
+    let hashedPassword;
+    if (!admin) {
+      throw new NotFoundException('Admin not found');
+    }
+    if (!(await bcrypt.compare(body.password, admin.password))) {
+      hashedPassword = await bcrypt.hash(body.password, 10);
+    }
+
+    this.adminService.update(+id, { ...body, password: hashedPassword });
+    return { message: 'success' };
   }
 }
