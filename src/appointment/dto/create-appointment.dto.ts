@@ -9,7 +9,7 @@ import {
 export class CreateAppointmentDto {
   @IsNotEmpty()
   @IsNumber()
-  id: number;
+  doctor_id: number;
 
   @IsNotEmpty()
   @IsString()
