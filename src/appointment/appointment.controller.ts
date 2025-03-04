@@ -25,9 +25,14 @@ export class AppointmentsController {
   @Post()
   async create(@Body() body: CreateAppointmentDto, @Req() request: Request) {
     try {
-      const cookie = request.cookies['jwt'];
-      const data = await this.jwtService.verifyAsync(cookie);
-      if (!data) throw new UnauthorizedException();
+      const token = request.headers.authorization?.split(' ')[1];
+      if (!token) {
+        throw new UnauthorizedException();
+      }
+      const data = await this.jwtService.verifyAsync(token);
+      if (!data) {
+        throw new UnauthorizedException();
+      }
 
       return this.appointmentsService.create(body, body.doctor_id, data.id);
     } catch (error) {

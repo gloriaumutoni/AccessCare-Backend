@@ -25,8 +25,12 @@ export class UserController {
   @Get()
   async getUsers(@Req() request: Request) {
     try {
-      const cookie = request.cookies['jwt'];
-      const data = await this.jwtService.verifyAsync(cookie);
+      const token = request.headers.authorization?.split(' ')[1];
+      console.log(token);
+      if (!token) {
+        throw new UnauthorizedException();
+      }
+      const data = await this.jwtService.verifyAsync(token);
       if (!data) {
         throw new UnauthorizedException();
       }
