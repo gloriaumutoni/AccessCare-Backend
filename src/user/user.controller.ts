@@ -17,6 +17,7 @@ import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { ChangeRoleDto } from './dto/change-role.dto';
 import { AdminGuard } from '../common/guards/admin.guard';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
 @Controller('user')
 export class UserController {
@@ -26,21 +27,13 @@ export class UserController {
   ) {}
 
   @Get()
-  async getUsers(@Req() request: Request) {
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  async getUsers() {
     try {
-      const token = request.headers.authorization?.split(' ')[1];
-      console.log(token);
-      if (!token) {
-        throw new UnauthorizedException();
-      }
-      const data = await this.jwtService.verifyAsync(token);
-      if (!data) {
-        throw new UnauthorizedException();
-      }
-      const admin = await this.userService.findAll();
-      return admin;
+      const users = await this.userService.findAll();
+      return users;
     } catch (error) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Failed to fetch users');
     }
   }
 
