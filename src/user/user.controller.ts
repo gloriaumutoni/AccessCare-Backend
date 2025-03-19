@@ -8,12 +8,15 @@ import {
   Put,
   Req,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { UserService } from './user.service';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dtos/update-user.dto';
+import { ChangeRoleDto } from './dto/change-role.dto';
+import { AdminGuard } from '../common/guards/admin.guard';
 
 @Controller('user')
 export class UserController {
@@ -59,5 +62,11 @@ export class UserController {
   @Delete(':id')
   deleteUser(@Param('id') id: string) {
     return this.userService.remove(+id);
+  }
+
+  @Put('change-role')
+  @UseGuards(AdminGuard)
+  async changeRole(@Body() changeRoleDto: ChangeRoleDto) {
+    return this.userService.changeRole(changeRoleDto);
   }
 }

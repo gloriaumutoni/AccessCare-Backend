@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import { UpdateUserDto } from './dtos/update-user.dto';
+import { ChangeRoleDto } from './dto/change-role.dto';
 
 @Injectable()
 export class UserService {
@@ -32,5 +33,18 @@ export class UserService {
 
   remove(id: number) {
     return this.userRepository.delete(id);
+  }
+
+  async changeRole(changeRoleDto: ChangeRoleDto): Promise<User> {
+    const user = await this.findById(changeRoleDto.userId);
+
+    if (!user) {
+      throw new NotFoundException(
+        `User with ID ${changeRoleDto.userId} not found`,
+      );
+    }
+
+    user.role = changeRoleDto.newRole;
+    return this.userRepository.save(user);
   }
 }
