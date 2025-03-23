@@ -47,9 +47,26 @@ export class AuthController {
     if (!(await bcrypt.compare(body.password, user.password))) {
       throw new BadRequestException('Invalid credentials');
     }
-    const jwt = await this.jwtService.signAsync({ id: user.id });
+
+    // Include both id and role in the token
+    const jwt = await this.jwtService.signAsync({
+      id: user.id,
+      role: user.role,
+    });
+
+    // Set cookie for cookie-based auth
     response.cookie('jwt', jwt, { httpOnly: true });
-    return { access_token: jwt, user };
+
+    // Return token for bearer token auth
+    return {
+      access_token: jwt,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        username: user.username,
+      },
+    };
   }
 
   @Post('/logout')

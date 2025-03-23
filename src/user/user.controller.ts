@@ -19,6 +19,13 @@ import { ChangeRoleDto } from './dto/change-role.dto';
 import { AdminGuard } from '../common/guards/admin.guard';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
+interface RequestWithUser extends Request {
+  user: {
+    id: number;
+    role: string;
+  };
+}
+
 @Controller('user')
 export class UserController {
   constructor(
@@ -28,10 +35,11 @@ export class UserController {
 
   @Get()
   @UseGuards(JwtAuthGuard, AdminGuard)
-  async getUsers() {
+  async getUsers(@Req() request: RequestWithUser) {
     try {
       const users = await this.userService.findAll();
-      return users;
+      const filteredUsers = users.filter((user) => user.id !== request.user.id);
+      return filteredUsers;
     } catch (error) {
       throw new UnauthorizedException('Failed to fetch users');
     }
