@@ -1,25 +1,28 @@
 import {
+  IsDateString,
   IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
+  MinLength,
 } from 'class-validator';
 
 export class CreateAppointmentDto {
+  @IsDateString()
   @IsNotEmpty()
-  @IsNumber()
-  doctor_id: number;
-
-  @IsNotEmpty()
-  @IsString()
   start_date: string;
 
+  @IsDateString()
   @IsNotEmpty()
-  @IsString()
   end_date: string;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
+  @MinLength(10)
   notes: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  providerId: number;
 }

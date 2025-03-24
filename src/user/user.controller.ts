@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -18,6 +19,7 @@ import { UpdateUserDto } from './dtos/update-user.dto';
 import { ChangeRoleDto } from './dto/change-role.dto';
 import { AdminGuard } from '../common/guards/admin.guard';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { Role } from '../common/enums/role.enum';
 
 interface RequestWithUser extends Request {
   user: {
@@ -32,6 +34,12 @@ export class UserController {
     private readonly userService: UserService,
     private jwtService: JwtService,
   ) {}
+
+  @Get('doctors')
+  @UseGuards(JwtAuthGuard)
+  async getDoctors() {
+    return this.userService.findByRole(Role.DOCTOR);
+  }
 
   @Get()
   @UseGuards(JwtAuthGuard, AdminGuard)
@@ -68,6 +76,12 @@ export class UserController {
   @Put('change-role')
   @UseGuards(AdminGuard)
   async changeRole(@Body() changeRoleDto: ChangeRoleDto) {
+    const userId = parseInt(changeRoleDto.userId as any, 10);
+    if (isNaN(userId)) {
+      throw new BadRequestException('Invalid user ID');
+    }
+
+    changeRoleDto.userId = userId;
     return this.userService.changeRole(changeRoleDto);
   }
 }

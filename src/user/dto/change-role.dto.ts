@@ -1,12 +1,13 @@
-import { IsEnum, IsNotEmpty, IsNumber } from 'class-validator';
+import { IsEnum, IsInt, IsNotEmpty } from 'class-validator';
 import { Role } from '../../common/enums/role.enum';
-
+import { Type } from 'class-transformer';
 export class ChangeRoleDto {
-  @IsNumber()
   @IsNotEmpty()
+  @Type(() => Number) // Add this to automatically transform string to number
+  @IsInt()
   userId: number;
 
-  @IsEnum(Role)
   @IsNotEmpty()
+  @IsEnum(Role)
   newRole: Role;
 }

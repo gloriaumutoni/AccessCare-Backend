@@ -2,59 +2,60 @@ import {
   Body,
   Controller,
   Get,
-  Param,
-  ParseIntPipe,
-  Patch,
   Post,
+  UseGuards,
   Req,
-  UnauthorizedException,
+  Param,
+  ForbiddenException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { Request } from 'express';
 import { AppointmentsService } from './appointment.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
-import { UpdateAppointmentDto } from './dto/update-appointment.dto';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { Request } from 'express';
 
-@Controller('/appointments')
-export class AppointmentsController {
-  constructor(
-    private readonly appointmentsService: AppointmentsService,
-    private jwtService: JwtService,
-  ) {}
+interface RequestWithUser extends Request {
+  user: {
+    id: number;
+    role: string;
+  };
+}
+
+@Controller('appointment')
+export class AppointmentController {
+  constructor(private readonly appointmentService: AppointmentsService) {}
 
   @Post()
-  async create(@Body() body: CreateAppointmentDto, @Req() request: Request) {
+  @UseGuards(JwtAuthGuard)
+  async create(
+    @Body() createAppointmentDto: CreateAppointmentDto,
+    @Req() request: RequestWithUser,
+  ) {
     try {
-      const token = request.headers.authorization?.split(' ')[1];
-      if (!token) {
-        throw new UnauthorizedException();
-      }
-      const data = await this.jwtService.verifyAsync(token);
-      if (!data) {
-        throw new UnauthorizedException();
-      }
-
-      return this.appointmentsService.create(body, body.doctor_id, data.id);
+      const result = await this.appointmentService.create(
+        createAppointmentDto,
+        request.user.id,
+      );
+      return result;
     } catch (error) {
-      throw new UnauthorizedException();
+      throw error;
     }
   }
 
   @Get()
-  findAll() {
-    return this.appointmentsService.findAll();
+  @UseGuards(JwtAuthGuard)
+  async findAll(@Req() request: RequestWithUser) {
+    if (request.user.role === 'patient') {
+      return this.appointmentService.findByPatient(request.user.id);
+    }
+    if (request.user.role === 'doctor') {
+      return this.appointmentService.findByDoctor(request.user.id);
+    }
+    return this.appointmentService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.appointmentsService.findAllMyAppointments(id);
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateAppointmentDto: UpdateAppointmentDto,
-  ) {
-    return this.appointmentsService.update(id, updateAppointmentDto);
+  @UseGuards(JwtAuthGuard)
+  async findOne(@Param('id') id: string) {
+    return this.appointmentService.findOne(+id);
   }
 }
