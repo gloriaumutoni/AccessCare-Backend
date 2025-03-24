@@ -26,13 +26,11 @@ export class AppointmentsService {
     createAppointmentDto: CreateAppointmentDto,
     patientId: number,
   ): Promise<Appointment> {
-    // Get the patient (owner)
     const patient = await this.userRepository.findOneBy({ id: patientId });
     if (!patient) {
       throw new NotFoundException('Patient not found');
     }
 
-    // Get the doctor (provider)
     const doctor = await this.userRepository.findOneBy({
       id: createAppointmentDto.providerId,
     });
@@ -40,12 +38,10 @@ export class AppointmentsService {
       throw new NotFoundException('Doctor not found');
     }
 
-    // Verify the provider is a doctor
     if (doctor.role !== 'doctor') {
       throw new BadRequestException('Selected provider is not a doctor');
     }
 
-    // Create the appointment
     const appointment = this.appointmentRepository.create({
       ...createAppointmentDto,
       owner: patient,
@@ -147,8 +143,50 @@ export class AppointmentsService {
       );
     }
   }
+  async update(
+    id: number,
+    updateAppointmentDto: UpdateAppointmentDto,
+    patientId: number,
+  ): Promise<Appointment> {
+    const appointment = await this.appointmentRepository.findOne({
+      where: {
+        id,
+        owner: { id: patientId },
+      },
+      relations: ['owner', 'provider'],
+    });
 
-  async update(id: number, updateAppointmentDto: UpdateAppointmentDto) {
-    return `Updating appointment with id ${id}`;
+    if (!appointment) {
+      throw new NotFoundException('Appointment not found or unauthorized');
+    }
+
+    if (updateAppointmentDto.providerId) {
+      const newProvider = await this.userRepository.findOne({
+        where: {
+          id: updateAppointmentDto.providerId,
+          role: 'doctor',
+        },
+      });
+
+      if (!newProvider) {
+        throw new BadRequestException('Invalid doctor selected');
+      }
+
+      appointment.provider = newProvider;
+    }
+
+    if (updateAppointmentDto.start_date) {
+      appointment.start_date = updateAppointmentDto.start_date;
+    }
+
+    if (updateAppointmentDto.end_date) {
+      appointment.end_date = updateAppointmentDto.end_date;
+    }
+
+    if (updateAppointmentDto.notes) {
+      appointment.notes = updateAppointmentDto.notes;
+    }
+
+    return this.appointmentRepository.save(appointment);
   }
 }

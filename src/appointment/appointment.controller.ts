@@ -7,11 +7,13 @@ import {
   Req,
   Param,
   ForbiddenException,
+  Patch,
 } from '@nestjs/common';
 import { AppointmentsService } from './appointment.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { Request } from 'express';
+import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 
 interface RequestWithUser extends Request {
   user: {
@@ -70,5 +72,23 @@ export class AppointmentController {
   @UseGuards(JwtAuthGuard)
   async findOne(@Param('id') id: string) {
     return this.appointmentService.findOne(+id);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  async updateAppointment(
+    @Param('id') id: number,
+    @Body() updateAppointmentDto: UpdateAppointmentDto,
+    @Req() request: RequestWithUser,
+  ) {
+    if (request.user.role !== 'patient') {
+      throw new ForbiddenException('Only patients can reschedule appointments');
+    }
+
+    return this.appointmentService.update(
+      id,
+      updateAppointmentDto,
+      request.user.id,
+    );
   }
 }
