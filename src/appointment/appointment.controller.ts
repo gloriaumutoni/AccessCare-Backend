@@ -41,16 +41,29 @@ export class AppointmentController {
     }
   }
 
-  @Get()
+  @Get('my-appointments')
   @UseGuards(JwtAuthGuard)
-  async findAll(@Req() request: RequestWithUser) {
+  async getMyAppointments(@Req() request: RequestWithUser) {
     if (request.user.role === 'patient') {
       return this.appointmentService.findByPatient(request.user.id);
     }
     if (request.user.role === 'doctor') {
       return this.appointmentService.findByDoctor(request.user.id);
     }
-    return this.appointmentService.findAll();
+    throw new ForbiddenException('Unauthorized to view appointments');
+  }
+
+  @Get('patient-appointments')
+  @UseGuards(JwtAuthGuard)
+  async getPatientAppointmentsForDoctor(@Req() request: RequestWithUser) {
+    if (request.user.role !== 'doctor') {
+      throw new ForbiddenException(
+        'Only doctors can view patient appointments',
+      );
+    }
+    return this.appointmentService.findPatientAppointmentsForDoctor(
+      request.user.id,
+    );
   }
 
   @Get(':id')

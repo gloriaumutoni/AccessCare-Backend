@@ -55,6 +55,31 @@ export class AppointmentsService {
     return this.appointmentRepository.save(appointment);
   }
 
+  async findPatientAppointmentsForDoctor(
+    doctorId: number,
+  ): Promise<Appointment[]> {
+    try {
+      // Find all appointments where this doctor is the provider
+      const appointments = await this.appointmentRepository.find({
+        where: { provider: { id: doctorId } },
+        relations: ['owner', 'provider'],
+      });
+
+      if (appointments.length === 0) {
+        throw new NotFoundException('No appointments found for this doctor');
+      }
+
+      return appointments;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'Error while fetching patient appointments for doctor',
+      );
+    }
+  }
+
   async findAll() {
     return this.appointmentRepository.find({
       relations: ['owner', 'provider'],
