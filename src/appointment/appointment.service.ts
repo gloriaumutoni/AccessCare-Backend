@@ -94,10 +94,39 @@ export class AppointmentsService {
   }
 
   async findByPatient(patientId: number) {
-    return this.appointmentRepository.find({
+    const appointments = await this.appointmentRepository.find({
       where: { owner: { id: patientId } },
       relations: ['owner', 'provider'],
+      order: {
+        start_date: 'ASC',
+      },
     });
+
+    const statusSummary = {
+      pending: appointments.filter(
+        (app) => app.status === AppointmentStatus.PENDING,
+      ).length,
+      accepted: appointments.filter(
+        (app) => app.status === AppointmentStatus.ACCEPTED,
+      ).length,
+      declined: appointments.filter(
+        (app) => app.status === AppointmentStatus.DECLINED,
+      ).length,
+      rescheduled: appointments.filter(
+        (app) => app.status === AppointmentStatus.RESCHEDULED,
+      ).length,
+      completed: appointments.filter(
+        (app) => app.status === AppointmentStatus.COMPLETED,
+      ).length,
+      cancelled: appointments.filter(
+        (app) => app.status === AppointmentStatus.CANCELLED,
+      ).length,
+    };
+
+    return {
+      appointments,
+      statusSummary,
+    };
   }
 
   async findByDoctor(doctorId: number) {
