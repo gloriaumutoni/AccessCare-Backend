@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '../../user/user.entity';
+import { AppointmentStatus } from '../../common/enums/appointment-status.enum';
 
 @Entity('appointment')
 export class Appointment {
@@ -28,4 +29,11 @@ export class Appointment {
 
   @Column('text', { nullable: true })
   notes: string;
+
+  @Column({
+    type: 'enum',
+    enum: AppointmentStatus,
+    default: AppointmentStatus.PENDING,
+  })
+  status: AppointmentStatus;
 }

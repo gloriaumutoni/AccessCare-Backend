@@ -3,6 +3,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
@@ -12,6 +13,8 @@ import { Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { User } from '../user/user.entity';
 import { Role } from '../common/enums/role.enum';
+import { DoctorActionDto } from './dto/doctor-action.dto';
+import { AppointmentStatus } from '../common/enums/appointment-status.enum';
 
 @Injectable()
 export class AppointmentsService {
@@ -144,6 +147,59 @@ export class AppointmentsService {
       );
     }
   }
+
+  async handleDoctorAction(
+    appointmentId: number,
+    doctorId: number,
+    actionDto: DoctorActionDto,
+  ): Promise<Appointment> {
+    const appointment = await this.appointmentRepository.findOne({
+      where: {
+        id: appointmentId,
+        provider: { id: doctorId },
+      },
+      relations: ['owner', 'provider'],
+    });
+
+    if (!appointment) {
+      throw new NotFoundException('Appointment not found or unauthorized');
+    }
+
+    if (appointment.status !== AppointmentStatus.PENDING) {
+      throw new BadRequestException('Appointment is not in pending status');
+    }
+
+    switch (actionDto.action) {
+      case AppointmentStatus.ACCEPTED:
+        appointment.status = AppointmentStatus.ACCEPTED;
+        break;
+
+      case AppointmentStatus.DECLINED:
+        appointment.status = AppointmentStatus.DECLINED;
+        break;
+
+      case AppointmentStatus.RESCHEDULED:
+        if (!actionDto.newStartDate || !actionDto.newEndDate) {
+          throw new BadRequestException(
+            'New dates are required for rescheduling',
+          );
+        }
+        appointment.start_date = actionDto.newStartDate;
+        appointment.end_date = actionDto.newEndDate;
+        appointment.status = AppointmentStatus.RESCHEDULED;
+        break;
+
+      default:
+        throw new BadRequestException('Invalid action');
+    }
+
+    if (actionDto.notes) {
+      appointment.notes = actionDto.notes;
+    }
+
+    return this.appointmentRepository.save(appointment);
+  }
+
   async update(
     id: number,
     updateAppointmentDto: UpdateAppointmentDto,

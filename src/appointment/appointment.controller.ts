@@ -14,6 +14,7 @@ import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { Request } from 'express';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
+import { DoctorActionDto } from './dto/doctor-action.dto';
 
 interface RequestWithUser extends Request {
   user: {
@@ -89,6 +90,24 @@ export class AppointmentController {
       id,
       updateAppointmentDto,
       request.user.id,
+    );
+  }
+
+  @Patch(':id/doctor-action')
+  @UseGuards(JwtAuthGuard)
+  async handleDoctorAction(
+    @Param('id') id: number,
+    @Body() actionDto: DoctorActionDto,
+    @Req() request: RequestWithUser,
+  ) {
+    if (request.user.role !== 'doctor') {
+      throw new ForbiddenException('Only doctors can perform this action');
+    }
+
+    return this.appointmentService.handleDoctorAction(
+      id,
+      request.user.id,
+      actionDto,
     );
   }
 }
