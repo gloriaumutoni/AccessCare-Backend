@@ -11,6 +11,7 @@ import { Appointment } from './entities/appointment.entity';
 import { Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { User } from '../user/user.entity';
+import { Role } from '../common/enums/role.enum';
 
 @Injectable()
 export class AppointmentsService {
@@ -164,7 +165,7 @@ export class AppointmentsService {
       const newProvider = await this.userRepository.findOne({
         where: {
           id: updateAppointmentDto.providerId,
-          role: 'doctor',
+          role: Role.DOCTOR,
         },
       });
 
