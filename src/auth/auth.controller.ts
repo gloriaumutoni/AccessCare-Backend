@@ -20,7 +20,13 @@ export class AuthController {
   ) {}
 
   @Post('/signup')
-  async createuser(@Body() body: CreateUserDto) {
+  async createUser(@Body() body: CreateUserDto) {
+    // Check if user already exists
+    const existingUser = await this.userService.findOne(body.email);
+    if (existingUser) {
+      throw new BadRequestException('User with this email already exists');
+    }
+
     const hashedPassword = await bcrypt.hash(body.password, 10);
     const user = await this.userService.create({
       username: body.username,
@@ -37,27 +43,31 @@ export class AuthController {
 
   @Post('/login')
   async login(
-    @Body() body: Exclude<CreateUserDto, 'username'>,
+    @Body() body: { email: string; password: string },
     @Res({ passthrough: true }) response: Response,
   ) {
     const user = await this.userService.findOne(body.email);
     if (!user) {
       throw new BadRequestException('Invalid credentials');
     }
-    if (!(await bcrypt.compare(body.password, user.password))) {
+
+    const isPasswordValid = await bcrypt.compare(body.password, user.password);
+    if (!isPasswordValid) {
       throw new BadRequestException('Invalid credentials');
     }
 
-    // Include both id and role in the token
     const jwt = await this.jwtService.signAsync({
       id: user.id,
       role: user.role,
     });
 
-    // Set cookie for cookie-based auth
-    response.cookie('jwt', jwt, { httpOnly: true });
+    response.cookie('jwt', jwt, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // use secure in production
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    });
 
-    // Return token for bearer token auth
     return {
       access_token: jwt,
       user: {
