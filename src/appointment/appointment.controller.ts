@@ -15,6 +15,8 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { Request } from 'express';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { DoctorActionDto } from './dto/doctor-action.dto';
+import { UserService } from '../user/user.service';
+import { Role } from '../common/enums/role.enum';
 
 interface RequestWithUser extends Request {
   user: {
@@ -25,7 +27,10 @@ interface RequestWithUser extends Request {
 
 @Controller('appointment')
 export class AppointmentController {
-  constructor(private readonly appointmentService: AppointmentsService) {}
+  constructor(
+    private readonly appointmentService: AppointmentsService,
+    private readonly userService: UserService,
+  ) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -44,9 +49,23 @@ export class AppointmentController {
     }
   }
 
-  @Get('my-appointments')
+  @Get('doctors')
+  @UseGuards(JwtAuthGuard)
+  async getAvailableDoctors(@Req() request: RequestWithUser) {
+    if (request.user.role !== 'patient' && request.user.role !== 'admin') {
+      throw new ForbiddenException(
+        'Only patients and administrators can view available doctors',
+      );
+    }
+    return this.userService.findByRole(Role.DOCTOR);
+  }
+
+  @Get('all')
   @UseGuards(JwtAuthGuard)
   async getMyAppointments(@Req() request: RequestWithUser) {
+    if (request.user.role === 'admin') {
+      return this.appointmentService.findAll();
+    }
     if (request.user.role === 'patient') {
       return this.appointmentService.findByPatient(request.user.id);
     }
