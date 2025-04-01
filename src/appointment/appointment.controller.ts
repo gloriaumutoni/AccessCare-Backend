@@ -88,6 +88,18 @@ export class AppointmentController {
     );
   }
 
+  @Get('appointments-history')
+  @UseGuards(JwtAuthGuard)
+  async getMyAppointmentsHistory(@Req() request: RequestWithUser) {
+    if (request.user.role !== 'patient') {
+      throw new ForbiddenException('Only patients can view their appointments');
+    }
+
+    return this.appointmentService.findPatientAppointmentsByStatus(
+      request.user.id,
+    );
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   async findOne(@Param('id') id: string) {

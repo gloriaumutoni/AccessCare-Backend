@@ -275,4 +275,57 @@ export class AppointmentsService {
 
     return this.appointmentRepository.save(appointment);
   }
+
+  async findPatientAppointmentsByDoctorAndStatus(
+    patientId: number,
+    doctorId?: number,
+  ) {
+    const queryBuilder = this.appointmentRepository
+      .createQueryBuilder('appointment')
+      .leftJoinAndSelect('appointment.owner', 'owner')
+      .leftJoinAndSelect('appointment.provider', 'provider')
+      .where('owner.id = :patientId', { patientId });
+
+    if (doctorId) {
+      queryBuilder.andWhere('provider.id = :doctorId', { doctorId });
+    }
+
+    const appointments = await queryBuilder.getMany();
+
+    const now = new Date();
+    const pastAppointments = appointments.filter(
+      (app) => new Date(app.start_date) < now,
+    );
+    const pendingAppointments = appointments.filter(
+      (app) => new Date(app.start_date) >= now,
+    );
+
+    return {
+      pastAppointments,
+      pendingAppointments,
+    };
+  }
+
+  async findPatientAppointmentsByStatus(patientId: number) {
+    const appointments = await this.appointmentRepository.find({
+      where: { owner: { id: patientId } },
+      relations: ['owner', 'provider'],
+      order: {
+        start_date: 'DESC',
+      },
+    });
+
+    const now = new Date();
+    const pastAppointments = appointments.filter(
+      (app) => new Date(app.start_date) < now,
+    );
+    const pendingAppointments = appointments.filter(
+      (app) => new Date(app.start_date) >= now,
+    );
+
+    return {
+      pastAppointments,
+      pendingAppointments,
+    };
+  }
 }
