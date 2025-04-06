@@ -6,6 +6,14 @@ import * as cookieParser from 'cookie-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.use((req, res, next) => {
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200);
+    } else {
+      next();
+    }
+  });
+
   app.enableCors({
     origin: ['https://accesscare-fe.netlify.app', 'http://localhost:5173'],
     preflightContinue: true,
