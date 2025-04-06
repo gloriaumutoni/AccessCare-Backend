@@ -16,7 +16,6 @@ async function bootstrap() {
 
   app.enableCors({
     origin: ['https://accesscare-fe.netlify.app', 'http://localhost:5173'],
-    credentials: true,
     preflightContinue: true,
   });
 
